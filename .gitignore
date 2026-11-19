@@ -1,0 +1,24 @@
+# Rahasia: JANGAN di-push (isi password database dan SMTP)
+config/config.php
+.env
+
+# Dependensi: dibuat ulang dengan `composer install`
+vendor/
+node_modules/
+
+# Dump database berisi data asli pengguna
+database/dump*.sql
+database/backup*
+*.sql.bak
+*.sqlite
+
+# Log dan file unggahan
+*.log
+uploads/
+storage/
+
+# Editor dan sistem operasi
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
