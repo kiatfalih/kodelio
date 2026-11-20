@@ -6,8 +6,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  $email=strtolower(trim((string)($_POST['email']??'')));
  $s=db()->prepare('SELECT * FROM users WHERE email=?');$s->execute([$email]);$u=$s->fetch();
  if(($_POST['action']??'')==='resend'){
-  if($u&&!$u['email_verified_at'])mail_verify($u['email'],$u['name'],make_token('email_verifications',(int)$u['id'],1440));
-  flash('info','Jika akun itu belum terverifikasi, email verifikasi baru sudah dikirim.');redirect('login.php');
+  $sent=true;if($u&&!$u['email_verified_at'])$sent=mail_verify($u['email'],$u['name'],make_token('email_verifications',(int)$u['id'],1440));
+  if(!$sent)flash(!empty($GLOBALS['cfg']['demo_mode'])?'danger':'warning',!empty($GLOBALS['cfg']['demo_mode'])?'Email gagal dikirim: '.($GLOBALS['mail_error']??'tidak diketahui'):'Email belum bisa dikirim saat ini. Coba lagi nanti.');
+  else flash('info','Jika akun itu belum terverifikasi, email verifikasi baru sudah dikirim.');
+  redirect('login.php');
  }
  $pw=(string)($_POST['password']??'');
  $ok=password_verify($pw,$u['password_hash']??'$2y$10$usesomesillystringforsaltuQ5wYk4F9vXk3kqQe7y3S0M2bq5mG'); // waktu verifikasi dibuat setara
@@ -17,7 +19,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   session_regenerate_id(true);$_SESSION['uid']=(int)$u['id'];
   if(!empty($_POST['remember']))setcookie(session_name(),session_id(),['expires'=>time()+60*60*24*30,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>!empty($_SERVER['HTTPS'])]);
   db()->prepare('UPDATE users SET last_login_at=NOW() WHERE id=?')->execute([$u['id']]);
-  redirect($u['role']==='admin'?'dashboard.php':'dashboard.php');
+  redirect(empty($u['active_path_id'])?'choose-path.php':'dashboard.php');
  }
 }
 $title='Login'; require __DIR__.'/includes/auth_top.php'; ?>
