@@ -1,14 +1,18 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 function send_mail(string $to,string $name,string $subject,string $html):bool{
- $auto=__DIR__.'/../vendor/autoload.php';
- if(!is_file($auto)){error_log('PHPMailer belum terpasang: jalankan composer install');return false;}
- require_once $auto;
- $s=cfg('smtp');$m=new PHPMailer(true);
+ $GLOBALS['mail_error']='';
+ $auto=__DIR__.'/../vendor/autoload.php';$man=__DIR__.'/PHPMailer/src/';
+ if(is_file($auto)){require_once $auto;}
+ elseif(is_file($man.'PHPMailer.php')){require_once $man.'Exception.php';require_once $man.'PHPMailer.php';require_once $man.'SMTP.php';}
+ else{$GLOBALS['mail_error']='PHPMailer belum terpasang (jalankan composer install, atau salin ke includes/PHPMailer/src/).';error_log($GLOBALS['mail_error']);return false;}
+ $s=cfg('smtp');
+ if(empty($s['user'])||empty($s['pass'])||strpos((string)$s['host'],'example.com')!==false){$GLOBALS['mail_error']='SMTP di config/config.php belum diisi (host, user, pass).';error_log($GLOBALS['mail_error']);return false;}
+ $m=new PHPMailer(true);
  try{
-  $m->isSMTP();$m->Host=$s['host'];$m->SMTPAuth=true;$m->Username=$s['user'];$m->Password=$s['pass'];$m->SMTPSecure=$s['secure'];$m->Port=$s['port'];$m->CharSet='UTF-8';
+  $m->isSMTP();$m->Host=$s['host'];$m->SMTPAuth=true;$m->Username=$s['user'];$m->Password=$s['pass'];$m->SMTPSecure=$s['secure']??'tls';$m->Port=$s['port'];$m->CharSet='UTF-8';
   $m->setFrom($s['from'],$s['from_name']);$m->addAddress($to,$name);$m->isHTML(true);$m->Subject=$subject;$m->Body=$html;$m->AltBody=strip_tags($html);$m->send();return true;
- }catch(Throwable $x){error_log('Mail error: '.$x->getMessage());return false;}
+ }catch(Throwable $x){$GLOBALS['mail_error']=$x->getMessage();error_log('Mail error: '.$x->getMessage());return false;}
 }
 function mail_verify(string $to,string $name,string $raw):bool{
  $url=cfg('app_url').'/verify.php?token='.$raw;
