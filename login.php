@@ -19,7 +19,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   session_regenerate_id(true);$_SESSION['uid']=(int)$u['id'];
   if(!empty($_POST['remember']))setcookie(session_name(),session_id(),['expires'=>time()+60*60*24*30,'path'=>'/','httponly'=>true,'samesite'=>'Lax','secure'=>!empty($_SERVER['HTTPS'])]);
   db()->prepare('UPDATE users SET last_login_at=NOW() WHERE id=?')->execute([$u['id']]);
-  redirect($u['role']==='admin'?'dashboard.php':'dashboard.php');
+  redirect(empty($u['active_path_id'])?'choose-path.php':'dashboard.php');
  }
 }
 $title='Login'; require __DIR__.'/includes/auth_top.php'; ?>
