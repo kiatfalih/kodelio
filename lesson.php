@@ -4,7 +4,8 @@ $L=find_lesson($uid,$id);
 if(!$L){http_response_code(404);exit('Step tidak ditemukan.');}
 if($L['state']==='lock'){flash('warning','Step itu masih terkunci. Selesaikan step sebelumnya dulu.');redirect('path.php?p='.$L['slug']);}
 $demo=!empty($GLOBALS['cfg']['demo_mode']);$isDone=$L['state']==='done';
-if($_SERVER['REQUEST_METHOD']==='POST'&&$demo&&!$isDone&&in_array($L['type'],['minigame','quiz'],true)){ // hanya sampai mini game & kuis asli ada
+$hq=db()->prepare('SELECT COUNT(*) FROM questions WHERE lesson_id=?');$hq->execute([$id]);$hasQ=(bool)$hq->fetchColumn();
+if($_SERVER['REQUEST_METHOD']==='POST'&&$demo&&!$hasQ&&!$isDone&&in_array($L['type'],['minigame','quiz'],true)){ // hanya sampai mini game & kuis asli ada
  csrf_check();$xp=complete_lesson(db(),$uid,$L);flash('success','Step selesai! +'.$xp.' XP');redirect('lesson.php?id='.$id);
 }
 if(!$isDone)db()->prepare("INSERT IGNORE INTO lesson_progress(user_id,lesson_id,status) VALUES(?,?,'in_progress')")->execute([$uid,$id]);
@@ -28,10 +29,10 @@ $c=(string)$L['content'];
 <?php else:?><a class="ls-item <?=$on?'on':''?>" href="lesson.php?id=<?=$s['id']?>"><i class="bi <?=$s['state']==='done'?'bi-check-circle-fill text-success':TYPE_ICON[$s['type']]?>"></i> <?=$i+1?>. <?=e(TYPE_LABEL[$s['type']])?></a><?php endif;?>
 <?php endforeach;?></div></aside>
 <section class="col-lg-9"><div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3"><div><span class="pill mb-2"><i class="bi <?=TYPE_ICON[$L['type']]?>"></i> <?=e(TYPE_LABEL[$L['type']])?></span><h1 class="h3 fw-bold mb-0"><?=e($L['title'])?></h1></div><span class="xp-badge"><i class="bi bi-lightning-charge-fill"></i> +<?=(int)$L['xp_reward']?> XP</span></div>
-<div class="card-k p-4 mb-3 ls-body"><?=$c===''?'<p class="mb-0 text-muted">Isi materi untuk step ini belum dibuat.</p>':(preg_match('/<[a-z][\s\S]*>/i',$c)?$c:nl2br(e($c)))?></div>
+<div class="card-k p-4 mb-3 ls-body"><?=$c===''?'<p class="mb-0 text-muted">'.($L['type']==='minigame'?'Selesaikan semua tantangan berikut. Soalnya bervariasi: pilihan ganda, menyusun kode, mencocokkan, dan mencari bug. Kalau salah, kamu boleh mencoba lagi.':($L['type']==='quiz'?'Jawab semua soal lalu kumpulkan. Nilai minimal untuk lulus dan membuka level berikutnya mengikuti syarat level ini (70%).':'Isi materi untuk step ini belum dibuat.')).'</p>':(preg_match('/<[a-z][\s\S]*>/i',$c)?$c:nl2br(e($c)))?></div>
 <?php if($isPractice):?><div class="row g-3 mb-3"><div class="col-lg-6"><textarea id="code" spellcheck="false"><?=e($starter)?></textarea><div class="mt-2 d-flex gap-2"><button type="button" id="run" class="btn btn-k"><i class="bi bi-play-fill"></i> Run Code</button><button type="button" id="reset" class="btn btn-outline-k"><i class="bi bi-arrow-counterclockwise"></i> Reset</button></div><div class="small text-muted mt-1">Ctrl+Enter untuk menjalankan</div></div>
 <div class="col-lg-6"><iframe id="pv" sandbox="allow-scripts" title="Live preview"></iframe></div></div><?php endif;?>
-<?php if(!$isAuto):?><div class="alert alert-info">Mini game dan kuis dibuat di tahap 8–9, jadi step ini belum bisa diselesaikan secara nyata.</div>
+<?php if(!$isAuto&&$hasQ):?><div id="quiz" class="card-k p-4 mb-3"></div><?php elseif(!$isAuto):?><div class="alert alert-info">Soal untuk step ini belum diisi, jadi belum bisa diselesaikan secara nyata.</div>
 <?php if($demo&&!$isDone):?><form method="post"><?=csrf_field()?><input type="hidden" name="id" value="<?=$id?>"><button class="btn btn-outline-k btn-sm">Tandai selesai (demo)</button></form><?php endif;?><?php endif;?>
 <div id="fb"><?php if($isDone):?><div class="alert alert-success mb-0">Step ini sudah selesai.</div><?php endif;?></div>
 <div class="d-flex justify-content-between align-items-center mt-3 gap-2"><?php if($prev):?><a class="btn btn-outline-k" href="lesson.php?id=<?=$prev?>"><i class="bi bi-arrow-left"></i> Previous</a><?php else:?><span></span><?php endif;?>
@@ -40,4 +41,5 @@ $c=(string)$L['content'];
 </section></div></main>
 <script>window.LS={id:<?=$id?>,slug:<?=json_encode($L['slug'])?>,csrf:<?=json_encode(csrf())?>};</script>
 <?php if($isPractice):?><script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script><?php endif;?>
+<?php if(!$isAuto&&$hasQ):?><script>window.QZ={id:<?=$id?>,type:<?=json_encode($L['type'])?>,slug:<?=json_encode($L['slug'])?>,next:<?=json_encode($next)?>,csrf:<?=json_encode(csrf())?>};</script><script src="assets/js/quiz.js"></script><?php endif;?>
 <script src="assets/js/lesson.js"></script></body></html>

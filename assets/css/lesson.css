@@ -9,3 +9,6 @@ a.ls-item:hover{background:var(--k-sky)}.ls-item.on{background:#f3f1ff;color:var
 #code,.CodeMirror{width:100%;height:320px;border-radius:14px;font-size:.9rem}
 #code{font-family:ui-monospace,Menlo,monospace;border:2px solid var(--k-line);padding:.8rem}
 #pv{width:100%;height:320px;border:2px solid var(--k-line);border-radius:14px;background:#fff}
+.qz-num{color:var(--k-p);font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.qz-opt{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;margin-bottom:.6rem;border:2px solid var(--k-line);border-radius:14px;cursor:pointer;font-weight:500;transition:border-color .15s,background .15s}
+.qz-opt:hover{border-color:#c9c3ff}.qz-opt input{accent-color:var(--k-p)}.qz-opt:has(input:checked){border-color:var(--k-p);background:#f3f1ff}
