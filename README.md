@@ -14,10 +14,11 @@ Stack: PHP 8.1+ (PDO), MySQL, Bootstrap 5, PHPMailer.
 | 1 Landing page | Selesai |
 | 2 Login, Register, verifikasi email, Forgot/Reset password | Selesai (perlu SMTP aktif untuk uji email) |
 | 3 Database + autentikasi | Selesai: 21 tabel, seed 2 jalur, 20 level, 100 step (judul saja), 6 achievement |
-| 4 Pemilihan jalur + placement test | Belum |
-| 4–5 Peta jalur belajar (kategori → level → step, kunci berurutan, awan penutup) | Selesai, data dari DB. Pemilihan jalur resmi + placement test belum |
-| 5 Dashboard lengkap | Baru ringkasan progres per jalur |
-| 6–14 Materi, editor, mini-game, kuis, gamifikasi, riwayat, proyek, admin | Belum |
+| 4 Pemilihan jalur + placement test | Selesai: pilih jalur, tes kemampuan awal 6 soal, rekomendasi jalur |
+| 4–5 Peta jalur belajar (kategori → level → step, kunci berurutan, awan penutup) | Selesai, data dari DB |
+| 6–7 Halaman belajar + editor kode | Selesai: Learn, Understand the Code, Code Practice (CodeMirror + live preview sandbox), XP, streak, achievement First Step. Materi baru HTML Level 1 (step 1–3) |
+| 8–9 Mini game + final quiz + Smart Feedback | Selesai: mini game 4 tipe (pilihan ganda, susun kode, cocokkan, cari bug), kuis dengan syarat 70%, hasil tersimpan. Soal baru HTML Level 1 |
+| 10–14 Gamifikasi lengkap, riwayat, proyek, admin | Belum |
 
 Keamanan yang sudah ada: password_hash, prepared statements, CSRF, token acak (hanya hash tersimpan, sekali pakai, kedaluwarsa), pesan reset yang tidak membocorkan email, escape output (XSS), folder `includes`, `config`, `database` diblokir lewat .htaccess (Apache).
 
@@ -39,6 +40,11 @@ Prasyarat: Git, PHP 8.1+, MySQL, dan Composer (paket XAMPP atau Laragon sudah me
    ```
    Buka `config/config.php`, lalu isi `app_url` (contoh `http://localhost/kodelio`), data `db`, dan data `smtp`.
 4. **Buat database:** buka phpMyAdmin, lalu import `database/schema.sql` dan setelah itu `database/seed.sql`.
+Setelah import schema.sql dan seed.sql, jalankan berurutan:
+a. database/migrate_tahap6.sql
+b. database/seed_html_level1.sql
+c. database/migrate_tahap8.sql
+d. database/seed_quiz_html_level1.sql
 5. **Jalankan:** nyalakan Apache dan MySQL, lalu buka `http://localhost/kodelio`.
    Alternatif tanpa Apache: `php -S localhost:8000`, lalu ubah `app_url` menjadi `http://localhost:8000`.
 6. **Tes tanpa SMTP:** daftar akun, lalu verifikasi manual lewat phpMyAdmin:
